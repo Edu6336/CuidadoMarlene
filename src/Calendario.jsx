@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteField } from 'firebase/firestore';
 import './App.css';
 
 const CUIDADORES = [
@@ -18,7 +18,7 @@ const TURNOS = [
   { id: 'Nocturno', label: 'N', horario: '7:00 pm - 7:00 am' }
 ];
 
-export default function Calendario({ usuario }) {
+export default function Calendario({ usuario, soloLectura }) {
   const [asignaciones, setAsignaciones] = useState({});
 
   useEffect(() => {
@@ -71,21 +71,37 @@ export default function Calendario({ usuario }) {
 
   const seleccionarTurno = async (dia, turno) => {
     const key = `${dia.fechaStr}-${turno.id}`;
-    if (asignaciones[key]) {
-      alert(`⚠️ Este turno ya está ocupado por ${asignaciones[key].nombre}.`);
+    const asignado = asignaciones[key];
+
+    // LÓGICA DE BORRADO (Si ya está asignado)
+    if (asignado) {
+      if (asignado.nombre === usuario.nombre) {
+        if (window.confirm(`¿Liberar tu turno del ${dia.nombre} ${dia.fechaStr}?`)) {
+          await updateDoc(doc(db, "datos", "calendario"), { [key]: deleteField() });
+          setAsignaciones(prev => { const nueva = { ...prev }; delete nueva[key]; return nueva; });
+        }
+      } else {
+        alert(`Este turno ya está ocupado por ${asignado.nombre}.`);
+      }
       return;
     }
 
-    if (window.confirm(`¿Elegir turno ${turno.id} (${turno.horario}) el ${dia.nombre} ${dia.fechaStr}? \n\n¡Muchas gracias, Marlene te lo agradece mucho!`)) {
+    // LÓGICA DE USUARIO SOLO LECTURA
+    if (soloLectura) {
+      alert("Modo visualización: No puedes asignar turnos.");
+      return;
+    }
+
+    // LÓGICA DE ASIGNACIÓN (Con corrección de color)
+    if (window.confirm(`¿Elegir turno ${turno.id} (${turno.horario}) el ${dia.nombre} ${dia.fechaStr}?`)) {
+      const cuidadorInfo = CUIDADORES.find(c => c.nombre === usuario.nombre) || { nombre: usuario.nombre, color: '#CCCCCC' };
+      const dataToSave = { ...usuario, ...cuidadorInfo };
+      
       try {
-        // Usamos { merge: true } para no borrar otros turnos al guardar
-        await setDoc(doc(db, "datos", "calendario"), { [key]: usuario }, { merge: true });
-        
-        // Actualizamos estado local
-        setAsignaciones(prev => ({ ...prev, [key]: usuario }));
+        await setDoc(doc(db, "datos", "calendario"), { [key]: dataToSave }, { merge: true });
+        setAsignaciones(prev => ({ ...prev, [key]: dataToSave }));
       } catch (error) {
-        console.error("Error al guardar en Firebase: ", error);
-        alert("Hubo un error al guardar, intenta de nuevo.");
+        alert("Error al guardar.");
       }
     }
   };
@@ -93,22 +109,9 @@ export default function Calendario({ usuario }) {
   return (
     <div className="ios-card" style={{ padding: '20px', backgroundColor: '#FFF7ED', maxWidth: '1000px', margin: 'auto' }}>
       <h3 style={{color: '#C2410C', textAlign: 'center', margin: '0 0 10px 0'}}>Calendario Semanal</h3>
-
-      <div style={{ 
-        background: '#FF7F50', padding: '10px', borderRadius: '8px', 
-        marginBottom: '10px', color: '#FFF', textAlign: 'center', fontWeight: 'bold' 
-      }}>
+      
+      <div style={{ background: '#FF7F50', padding: '10px', borderRadius: '8px', marginBottom: '10px', color: '#FFF', textAlign: 'center', fontWeight: 'bold' }}>
         {turnoActual ? `En turno ahora: ${turnoActual.nombre}` : "Sin cuidador asignado en este turno"}
-      </div>
-
-      <p style={{color: '#EA580C', fontSize: '14px', textAlign: 'center', margin: '0 0 15px 0'}}>Para Cuidar a Marlene | Llega 10 min antes de tu turno</p>
-
-      <div style={{ background: '#FEE2E2', padding: '10px', borderRadius: '8px', marginBottom: '10px', color: '#991B1B', fontSize: '12px', textAlign: 'center' }}>
-        <strong>Revisión urgente:</strong> Asegúrate de cubrir los turnos del día en curso y el siguiente.
-      </div>
-
-      <div style={{ background: '#FFEDD5', padding: '10px', borderRadius: '8px', marginBottom: '15px', color: '#9A3412', fontSize: '11px' }}>
-        <strong>Horarios:</strong> {TURNOS.map(t => `${t.id}: ${t.horario}`).join(' | ')}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px' }}>

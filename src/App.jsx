@@ -9,7 +9,8 @@ const USUARIOS = [
   { nombre: 'Ruby', pin: '3006' },
   { nombre: 'Victor', pin: '2108' },
   { nombre: 'Eduardo', pin: '2512' },
-  { nombre: 'Andrea', pin: '1504' }
+  { nombre: 'Andrea', pin: '1504' },
+  { nombre: 'Visualizador', pin: '1111', soloLectura: true } // Usuario nuevo
 ];
 
 export default function App() {
@@ -54,13 +55,20 @@ export default function App() {
 
   // --- Pantalla de Formulario ---
   if (pantalla === 'formulario') return (
-    <FormularioNovedad usuario={usuario} onVolver={() => setPantalla('menu')} />
+    <FormularioNovedad 
+      usuario={usuario} 
+      soloLectura={usuario.soloLectura} 
+      onVolver={() => setPantalla('menu')} 
+    />
   );
 
   // --- Pantalla de Calendario ---
   if (pantalla === 'calendario') return (
     <div style={{ maxWidth: '800px', margin: '20px auto' }}>
-        <Calendario usuario={usuario} />
+        <Calendario 
+          usuario={usuario} 
+          soloLectura={usuario.soloLectura} 
+        />
         <button className="ios-button" style={{ background: '#A1A1AA', marginTop: '20px' }} onClick={() => setPantalla('menu')}>
             Volver al Menú
         </button>
@@ -75,12 +83,14 @@ export default function App() {
         <p style={{ color: '#8E8E93' }}>Turno actual: <br/><strong>{obtenerTurno()}</strong></p>
       </div>
       
-      <button 
-        className="ios-button" 
-        style={{ background: '#60A5FA' }} 
-        onClick={() => setPantalla('formulario')}>
-        Registrar Reporte
-      </button>
+      {!usuario.soloLectura && (
+        <button 
+          className="ios-button" 
+          style={{ background: '#60A5FA' }} 
+          onClick={() => setPantalla('formulario')}>
+          Registrar Reporte
+        </button>
+      )}
       
       <button 
         className="ios-button" 
