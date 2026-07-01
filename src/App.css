@@ -1,0 +1,47 @@
+/* src/App.css */
+:root {
+  --primary-color: #007AFF; /* Azul iOS */
+  --bg-color: #F2F2F7;      /* Gris claro fondo iOS */
+  --card-bg: #FFFFFF;
+  --pastel-blue: #E0F2FE;
+  --pastel-green: #DCFCE7;
+  --text-main: #1C1C1E;
+}
+
+body {
+  background-color: var(--bg-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-main);
+  margin: 0;
+  padding: 20px;
+}
+
+.ios-card {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.ios-button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 12px;
+  width: 100%;
+  font-size: 17px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.ios-input {
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 12px;
+  border: 1px solid #E5E5EA;
+  font-size: 17px;
+  box-sizing: border-box; /* Importante para que no se salga del borde */
+}
