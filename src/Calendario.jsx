@@ -21,13 +21,16 @@ const TURNOS = [
 export default function Calendario({ usuario }) {
   const [asignaciones, setAsignaciones] = useState({});
 
-  // 1. Cargar turnos desde Firebase al montar el componente
   useEffect(() => {
     const cargarTurnos = async () => {
-      const docRef = doc(db, "datos", "calendario");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setAsignaciones(docSnap.data());
+      try {
+        const docRef = doc(db, "datos", "calendario");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setAsignaciones(docSnap.data());
+        }
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
       }
     };
     cargarTurnos();
@@ -66,7 +69,6 @@ export default function Calendario({ usuario }) {
 
   const turnoActual = getTurnoActual();
 
-  // 2. Guardar turno en Firebase al seleccionar
   const seleccionarTurno = async (dia, turno) => {
     const key = `${dia.fechaStr}-${turno.id}`;
     if (asignaciones[key]) {
@@ -75,12 +77,12 @@ export default function Calendario({ usuario }) {
     }
 
     if (window.confirm(`¿Elegir turno ${turno.id} (${turno.horario}) el ${dia.nombre} ${dia.fechaStr}? \n\n¡Muchas gracias, Marlene te lo agradece mucho!`)) {
-      const nuevasAsignaciones = { ...asignaciones, [key]: usuario };
-      setAsignaciones(nuevasAsignaciones);
-      
-      // Guardar en Firestore
       try {
-        await setDoc(doc(db, "datos", "calendario"), nuevasAsignaciones);
+        // Usamos { merge: true } para no borrar otros turnos al guardar
+        await setDoc(doc(db, "datos", "calendario"), { [key]: usuario }, { merge: true });
+        
+        // Actualizamos estado local
+        setAsignaciones(prev => ({ ...prev, [key]: usuario }));
       } catch (error) {
         console.error("Error al guardar en Firebase: ", error);
         alert("Hubo un error al guardar, intenta de nuevo.");
