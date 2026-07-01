@@ -1,18 +1,14 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// Configuración de tu proyecto Cuidado-Marlene
 const firebaseConfig = {
-  apiKey: "AIzaSyARHckUY1R5v_M3m1l6TYSaky3Kjrxa9IE",
-  authDomain: "cuidado-marlene.firebaseapp.com",
-  projectId: "cuidado-marlene",
-  storageBucket: "cuidado-marlene.appspot.com",
-  messagingSenderId: "917075890176",
-  appId: "1:917075890176:web:b56914647e93461b9b88e5"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Inicializa Firebase
 const app = initializeApp(firebaseConfig);
-
-// Inicializa Firestore y lo exporta para poder usarlo en otros archivos
 export const db = getFirestore(app);
